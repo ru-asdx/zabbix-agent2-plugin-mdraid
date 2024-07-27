@@ -1,0 +1,170 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: e960332b3f6c46a1956486d4f3f99fce
+      name: 'Templates/Server hardware'
+  templates:
+    - uuid: 9fd3a790182744cbb4c01533052574f0
+      template: 'MDRaid by Zabbix agent 2'
+      name: 'MDRaid by Zabbix agent 2'
+      description: |
+        The template for monitoring software RAID devices known as the md (Multiple Devices) that works without any external scripts. It collects metrics by Zabbix agent 2 with mdraid plugin, that read the data from sysfs, instead of parsing "/proc/mdstat" and "mdadm -D".
+        
+        https://github.com/ru-asdx/zabbix-agent2-plugin-mdraid/
+      vendor:
+        name: asdx
+        version: 7.0-0
+      groups:
+        - name: 'Templates/Server hardware'
+      discovery_rules:
+        - uuid: 81c60ef7347b48469096e287a20d3452
+          name: 'MDRAID Device discovery'
+          key: mdraid.dev.discovery
+          delay: 1h
+          description: 'Discovery MDRaid devices'
+          item_prototypes:
+            - uuid: 18d4bf84eeeb49a285d37524d8fb773c
+              name: 'MDRAID [{#DEVICE}]: Array State'
+              type: DEPENDENT
+              key: 'mdraid.dev.arraystate[{#DEVICE}]'
+              history: 7d
+              value_type: CHAR
+              description: 'Array State'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.ArrayState
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              master_item:
+                key: 'mdraid.dev.get[{#DEVICE}]'
+              tags:
+                - tag: component
+                  value: storage
+                - tag: device
+                  value: '{#DEVICE}'
+            - uuid: 5a8bb34d50234f9f87efc64876e08d86
+              name: 'MDRAID [{#DEVICE}]: Degraded Disks'
+              type: DEPENDENT
+              key: 'mdraid.dev.degradeddisks[{#DEVICE}]'
+              history: 7d
+              description: 'Degraded Disks'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.DegradedDisks
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              master_item:
+                key: 'mdraid.dev.get[{#DEVICE}]'
+              tags:
+                - tag: component
+                  value: storage
+                - tag: device
+                  value: '{#DEVICE}'
+              trigger_prototypes:
+                - uuid: d6b38e35bc3b4838a9b5ce4576798f58
+                  expression: 'last(/MDRaid by Zabbix agent 2/mdraid.dev.degradeddisks[{#DEVICE}])>0'
+                  name: 'MDRAID [{#DEVICE}]: {ITEM.LASTVALUE} disk(s) missed'
+                  priority: HIGH
+                  description: 'Degraded disks in MD Raid'
+                  manual_close: 'YES'
+            - uuid: afe3fc3efc6d4cc691233b24e006fbdc
+              name: 'MDRAID [{#DEVICE}]: Get device state'
+              key: 'mdraid.dev.get[{#DEVICE}]'
+              value_type: TEXT
+              tags:
+                - tag: component
+                  value: raw
+                - tag: component
+                  value: storage
+            - uuid: ef433b8720824d8f9c44e0e448124433
+              name: 'MDRAID [{#DEVICE}]: Raid Level'
+              type: DEPENDENT
+              key: 'mdraid.dev.level[{#DEVICE}]'
+              history: 7d
+              value_type: CHAR
+              description: 'Raid level'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.Level
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              master_item:
+                key: 'mdraid.dev.get[{#DEVICE}]'
+              tags:
+                - tag: component
+                  value: storage
+                - tag: device
+                  value: '{#DEVICE}'
+            - uuid: a315ed54a2f04c5981b7aa2b0f1e1871
+              name: 'MDRAID [{#DEVICE}]: Raid Disks'
+              type: DEPENDENT
+              key: 'mdraid.dev.raiddisks[{#DEVICE}]'
+              history: 7d
+              description: 'Raid Disks'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.RaidDisks
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              master_item:
+                key: 'mdraid.dev.get[{#DEVICE}]'
+              tags:
+                - tag: component
+                  value: storage
+                - tag: device
+                  value: '{#DEVICE}'
+            - uuid: 30f7fda0bd9b4ef9b6712749c3b6c38a
+              name: 'MDRAID [{#DEVICE}]: Sync Action'
+              type: DEPENDENT
+              key: 'mdraid.dev.syncaction[{#DEVICE}]'
+              history: 7d
+              value_type: CHAR
+              description: 'Sync Action'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.SyncAction
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              master_item:
+                key: 'mdraid.dev.get[{#DEVICE}]'
+              tags:
+                - tag: component
+                  value: storage
+                - tag: device
+                  value: '{#DEVICE}'
+            - uuid: aa6d0be3700d423384289f9fdc918667
+              name: 'MDRAID [{#DEVICE}]: Sync Completed'
+              type: DEPENDENT
+              key: 'mdraid.dev.synccompleted[{#DEVICE}]'
+              history: 7d
+              value_type: FLOAT
+              description: 'Sync Completed'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - $.SyncCompleted
+                - type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              master_item:
+                key: 'mdraid.dev.get[{#DEVICE}]'
+              tags:
+                - tag: component
+                  value: storage
+                - tag: device
+                  value: '{#DEVICE}'
+      tags:
+        - tag: class
+          value: storage
+        - tag: target
+          value: md

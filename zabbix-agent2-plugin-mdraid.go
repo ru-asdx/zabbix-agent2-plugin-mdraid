@@ -26,7 +26,7 @@ See the License for the specific language governing permissions and
 limitations under the License.`
 
 const (
-    PLUGIN_VERSION_MAJOR = 1
+    PLUGIN_VERSION_MAJOR = 7
     PLUGIN_VERSION_MINOR = 0
     PLUGIN_VERSION_PATCH = 0
     PLUGIN_VERSION_RC    = ""
